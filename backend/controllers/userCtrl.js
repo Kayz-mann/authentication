@@ -39,6 +39,13 @@ const userCtrl = {
         } catch (err) {
             return res.status(500).json({msg: err.message})
         }
+    },
+    activateEmail: async (req, res) => {
+        try {
+            const {activation_token} = req.body
+        } catch (err) {
+            return res.status(500).json({msg: err.message})
+        }
     }
 }
 
@@ -66,3 +73,6 @@ const createRefreshToken = (payload) => {
 }
  
 module.exports = userCtrl
+
+
+// 54:24
