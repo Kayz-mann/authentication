@@ -6,6 +6,7 @@ const fileUpload = require('express-fileupload')
 const connectDB = require("./config/db")
 
 
+// Middleware ------
 // Config
 const app = express()
 app.use(express.json())
@@ -17,14 +18,15 @@ app.use(fileUpload({
 
 // Router
 app.use('/user', require('./routes/userRouter'))
-
-// Connect to the database
-connectDB()
-
+app.use('/api', require('./routes/upload'))
 
 app.use('/', (req, res, next) => {
     res.json({msg: "Hello Everyone"})
 })
+// Middleware ------
+
+// Connect to the database
+connectDB()
 
 
 const PORT = process.env.PORT || 5000
