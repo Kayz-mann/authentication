@@ -8,7 +8,7 @@ function Header() {
     const auth = useSelector(state => state.auth)
     const {user, isLogged} = auth
 
-    const handleLogout = async = () => {
+    const handleLogout = async () => {
         try {
             await axios.get('user/logout')
             localStorage.removeItem('firstLogin')
