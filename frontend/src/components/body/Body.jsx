@@ -7,6 +7,7 @@ import Register from './auth/Register'
 import NotFound from '../header/utils/notfound/NotFound'
 import ForgotPassword from './auth/ForgotPassword'
 import ResetPassword from './auth/ResetPassword'
+import Profile from './profile/Profile'
 
 function Body() {
     const auth = useSelector(state => state.auth)
@@ -19,6 +20,7 @@ function Body() {
                 <Route path="/forgot_password" component={isLogged ? NotFound : ForgotPassword} exact></Route>
                 <Route path="/user/reset/:token" component={isLogged ? NotFound : ResetPassword} exact></Route>
                 <Route path="/user/activate/:activation_token" component={ActivationEmail} exact></Route>
+                <Route path="/profile" component={isLogged ? Profile : NotFound} exact></Route>
                 
             </Switch>
         </section>
