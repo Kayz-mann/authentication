@@ -86,3 +86,19 @@
     border-radius: 3px;
     margin-top: 15px;
 }
+
+.login_page .hr{
+    margin: 15px 0;
+    color: crimson;
+}
+
+.login_page .social button {
+    width: 100%;
+    margin: 10px 0;
+    height: 50px;
+    font-size: 14px;
+    font-weight: 200;
+    text-transform: uppercase;
+    box-shadow:0 2px 4px #777 ;
+    letter-spacing: 1.3px;
+}

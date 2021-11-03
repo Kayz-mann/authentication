@@ -9,6 +9,12 @@ router.post('/activation', userCtrl.activateEmail)
 
 router.post('/login', userCtrl.login)
 
+// login with google
+router.post('google_login', userCtrl.googleLogin)
+
+// login with facebook
+router.post('facebook_login', userCtrl.facebookLogin)
+
 router.post('/refresh_token', userCtrl.getAccessToken)
 
 router.post('/forgot', userCtrl.forgotPassword)

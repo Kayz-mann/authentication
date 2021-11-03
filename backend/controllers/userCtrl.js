@@ -2,9 +2,14 @@ const Users = require('../models/userModel')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const sendMail = require('./sendMail')
+const {google} = require('googleapis')
+const {OAuth2} = google.auth
+const fetch = require('node-fetch')
 
 
 const {CLIENT_URL} = process.env
+const client = new OAuth2(process.env.MAILING_SERVICE_CLIENT_ID)
+
 const userCtrl = {
     register: async (req, res) => {
         try {
@@ -87,6 +92,87 @@ const userCtrl = {
         
        
 
+    },
+    googleLogin: async (req, res) => {
+        try{
+            const {tokenId} = req.body
+            const verify = await client.verifyIdToken({idToken: tokenId, audience: process.env.MAILING_SERVICE_CLIENT_ID})
+            const {email_verified, email, name, picture} = verify.payload
+            const password = email + process.env.GOOGLE_SECRET
+            const passwordHash = await bcrypt.hash(password, 12)
+            if(!email_verified) return res.status(400).json({msg: "Email verfication failed"})
+
+            if(email_verified){
+                const user = await Users.findOne({email})
+                if(user){
+                    const isMatch = await bcrypt.compare(password, user.password)
+                    if(!isMatch) return res.status(400).json({msg: "Password is incorrect."})
+                }
+                const refresh_token = createRefreshToken({id: user._id})
+                res.cookie('refreshtoken', refresh_token, {
+                    httpOnly: true,
+                    path: '/user/refresh_token',
+                    maxAge: 7*24*60*60*1000 
+                })
+                res.json({msg: "Login success!"})
+            } else {
+                const newUser = new Users({
+                    name, email, password: passwordHash, avatar: picture
+                })
+                await newUser.save()
+                const refresh_token = createRefreshToken({id: newUser._id})
+                res.cookie('refreshtoken', refresh_token, {
+                    httpOnly: true,
+                    path: '/user/refresh_token',
+                    maxAge: 7*24*60*60*1000 
+                })
+                res.json({msg: "Login success!"})
+            }
+
+        }catch (err) {
+            return res.status(500).json({msg: err.message})
+        }
+    },
+    facebookLogin: async (req, res) => {
+        try{
+            const {accessToken, userID} = req.body
+            const data = await fetch(URL).then(res => res.json()).then(res => {return res})
+            const URL = `https://graph.facebook.com/v2.9/${userID}/fields=id,name,email,picture&access_token=${accessToken}`
+            const {email, name, picture} = data
+            const password = email + process.env.FACEBOOK_SECRET
+            const passwordHash = await bcrypt.hash(password, 12)
+            if(!email_verified) return res.status(400).json({msg: "Email verfication failed"})
+
+            if(email_verified){
+                const user = await Users.findOne({email})
+                if(user){
+                    const isMatch = await bcrypt.compare(password, user.password)
+                    if(!isMatch) return res.status(400).json({msg: "Password is incorrect."})
+                }
+                const refresh_token = createRefreshToken({id: user._id})
+                res.cookie('refreshtoken', refresh_token, {
+                    httpOnly: true,
+                    path: '/user/refresh_token',
+                    maxAge: 7*24*60*60*1000 
+                })
+                res.json({msg: "Login success!"})
+            } else {
+                const newUser = new Users({
+                    name, email, password: passwordHash, avatar: picture.data.url
+                })
+                await newUser.save()
+                const refresh_token = createRefreshToken({id: newUser._id})
+                res.cookie('refreshtoken', refresh_token, {
+                    httpOnly: true,
+                    path: '/user/refresh_token',
+                    maxAge: 7*24*60*60*1000 
+                })
+                res.json({msg: "Login success!"})
+            }
+
+        }catch (err) {
+            return res.status(500).json({msg: err.message})
+        }
     },
     getAccessToken: (req, res) => {
         try {
