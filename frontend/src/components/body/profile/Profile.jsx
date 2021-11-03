@@ -1,20 +1,13 @@
 import axios from 'axios'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {useSelector, useDispatch} from 'react-redux'
+import { Link } from 'react-router-dom'
+import { dispatchGetAllUsers, fetchAllUsers } from '../../../redux/actions/userAction'
 import { showErrMsg, showSuccessMsg } from '../../header/utils/notification/Notification'
 import { isLength, isMatch } from '../../header/utils/validation/Validation'
 import './Profile.css'
 
 function Profile() {
-    const initialState = {
-        name: '',
-        password: '',
-        cf_password: '',
-        phone_number: '',
-        err: '',
-        success: ''
-    }
-
     const {user, isAdmin} = auth
     const [data, setData] = useState(initialState)
     const [avatar, setAvatar] = useState(false)
@@ -23,6 +16,25 @@ function Profile() {
     const {name, password, cf_password, phone_number, err, success} = data
     const auth = useSelector(state => state.auth)
     const token = useSelector(state => state.token)
+    const users = useSelector(state => state.users)
+    const dispatch = useDispatch()
+
+    useEffect(() => {
+        if(isAdmin){
+            fetchAllUsers(token).then(res => {
+                dispatch(dispatchGetAllUsers(res))
+            })
+        }
+    }, [token, isAdmin, dispatch, callback])
+
+    const initialState = {
+        name: '',
+        password: '',
+        cf_password: '',
+        phone_number: '',
+        err: '',
+        success: ''
+    }
 
     const handleChange = e => {
        const {name, value} = e.target
@@ -92,6 +104,24 @@ function Profile() {
         }
     }
 
+    const handleDelete = async (id) => {
+      
+        try {
+            if (user._id !== id){
+                if(window.confirm("Are you sure you want to delete this account")){
+                    setLoading(true)
+                    await axios.delete(`/user/delete/${id}`, {
+                        headers: {Authorization: token}
+                    })
+                    setLoading(false)
+                    setCallback(!callback)
+                }
+            }
+        } catch (err) {
+             setData({...data, err: err.response.data.msg, success: ''})
+        }
+    }
+
     
 
 
@@ -117,7 +147,7 @@ function Profile() {
                 </div>
                 <div className="form-group">
                     <label htmlFor="name">Name</label>
-                    <input type="text" name="name" id="name" placeholder="Your name" defaultValue={user.name} />
+                    <input type="text" name="name" id="name" placeholder="Your name" defaultValue={user.name} onChange={handleChange} />
                 </div>
                 <div className="form-group">
                     <label htmlFor="email">Email</label>
@@ -157,11 +187,28 @@ function Profile() {
                             </tr>
                         </thead>
                         <tbody>
-                            <th>ID</th>
-                            <td>Name</td>
-                            <td>Email</td>
-                            <td>Admin</td>
-                            <td>Action</td>
+                            {
+                                users.map(user => (
+                                    <tr key={user._id}>
+                                        <td>{user._id}</td>
+                                        <td>{user.name}</td>
+                                        <td>{user.email}</td>
+                                        <td>
+                                            {
+                                                user.role === 1
+                                                ? <i className="fas fa-check" title="Admin"></i>
+                                                : <i className="fas fa-times" title="User"></i>
+                                            }
+                                        </td>
+                                        <td>
+                                            <Link to={`edit_user/${user._id}`}>
+                                                <i className="fas fa-edit" title="Edit" ></i>
+                                            </Link>
+                                            <i className="fas fa-trash-alt" title="Remove" onClick={handleDelete(user._id)}></i>
+                                        </td>
+                                    </tr>
+                                ))
+                            }
                         </tbody>
                     </table>
                 </div>
