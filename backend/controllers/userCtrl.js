@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const sendMail = require('./sendMail')
 const {google} = require('googleapis')
 const {OAuth2} = google.auth
-const fetch = require('node-fetch')
+// const fetch = require('node-fetch')
 
 
 const {CLIENT_URL} = process.env
@@ -136,7 +136,7 @@ const userCtrl = {
     facebookLogin: async (req, res) => {
         try{
             const {accessToken, userID} = req.body
-            const data = await fetch(URL).then(res => res.json()).then(res => {return res})
+            const data = await get(URL).then(res => res.json()).then(res => {return res})
             const URL = `https://graph.facebook.com/v2.9/${userID}/fields=id,name,email,picture&access_token=${accessToken}`
             const {email, name, picture} = data
             const password = email + process.env.FACEBOOK_SECRET
